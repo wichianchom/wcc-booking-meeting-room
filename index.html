@@ -1,237 +1,237 @@
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="th">
  <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบจองห้องประชุมโรงเรียนวิเชียรชม</title>
+  <meta name="description" content="ดูตารางห้องว่างและจองห้องประชุมประกายเพชร หอประชุมวิเชียรคีรี โรงเรียนวิเชียรชม ได้ทันที">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ระบบจองห้องประชุมโรงเรียนวิเชียรชม">
+  <meta property="og:description" content="ดูตารางห้องว่างและจองห้องประชุมได้ทันที">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cpath d='M18 50V16a3 3 0 0 1 3-3h22a3 3 0 0 1 3 3v34M12 50h40M26 22h4M34 22h4M26 30h4M34 30h4M28 50v-9h8v9' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-  // ==========================================
-  // 🔴 URL ของคุณ (คงเดิม)
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX2hTvwN2rzcLafiQfuWZTHZ5aRFJ8K3B4fPHn3NQkm67El3msX0qZdQC7a649tXiGQQ/exec"; 
-  // ==========================================
-
-  window.dataSdk = {
-    init: async function(callback) {
-      this.onDataChanged = callback.onDataChanged;
-      await this.fetchData();
-      return { isOk: true };
-    },
-    fetchData: async function() {
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL + "?action=read");
-        const data = await response.json();
-        if (this.onDataChanged) this.onDataChanged(data);
-      } catch (e) { console.error("Connection Error:", e); }
-    },
-    create: async function(newData) {
-      try {
-        await fetch(GOOGLE_SCRIPT_URL + "?action=create", { method: "POST", body: JSON.stringify(newData) });
-        await this.fetchData(); return { isOk: true };
-      } catch (e) { return { isOk: false }; }
-    },
-    delete: async function(item) {
-      try {
-        await fetch(GOOGLE_SCRIPT_URL + "?action=delete&id=" + item.__backendId, { method: "POST" });
-        await this.fetchData(); return { isOk: true };
-      } catch (e) { return { isOk: false }; }
-    }
-  };
-
-  window.elementSdk = { init: function(options) { if(options.onConfigChange) options.onConfigChange({}); return { isOk: true }; } };
-</script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
-    body { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { -webkit-tap-highlight-color: transparent; }
     * { font-family: 'Inter', 'Prompt', sans-serif; }
     .modal-overlay { animation: fadeIn 0.2s ease; }
+    .modal-content { animation: slideUp 0.25s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .modal-content { animation: slideUp 0.3s ease; }
-    
+
     .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    
-    .lang-btn { padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid rgb(219, 234, 254); }
+
+    .lang-btn { padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid rgb(219, 234, 254); }
     .lang-btn.active { background-color: rgb(59, 130, 246); color: white; border-color: rgb(59, 130, 246); }
     .lang-btn.inactive { background-color: rgb(243, 244, 246); color: rgb(107, 114, 128); }
+
+    /* ให้ช่องในตารางยืดเต็มความสูงของแถว (ใช้คู่กับ height:1px บน td) */
+    .cell-fill { height: 100%; }
+    select:disabled, option:disabled { color: #94a3b8; }
   </style>
  </head>
- <body class="h-full bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
-  <div id="app" class="h-full w-full overflow-auto flex flex-col">
-   <header class="bg-white/80 backdrop-blur-md border-b border-blue-100 sticky top-0 z-40 shadow-sm flex-shrink-0">
+ <body class="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 text-slate-800">
+  <div id="app" class="min-h-screen flex flex-col">
+
+   <!-- ===== Header ===== -->
+   <header class="bg-white/80 backdrop-blur-md border-b border-blue-100 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 md:py-4">
-     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
-      <div class="flex items-center gap-3">
-       <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+       <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" aria-hidden="true">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
        </div>
-       <div class="overflow-hidden">
-        <h1 id="main-title" class="text-lg md:text-xl font-semibold text-slate-800 truncate">ระบบจองห้องประชุมโรงเรียนวิเชียรชม</h1>
-        <p class="text-xs text-slate-500" id="subtitle">Booking System</p>
+       <div class="min-w-0">
+        <h1 class="text-lg md:text-xl font-semibold text-slate-800 truncate" data-i18n="title">ระบบจองห้องประชุมโรงเรียนวิเชียรชม</h1>
+        <p class="text-xs text-slate-500 truncate" data-i18n="subtitle">ดูตารางห้องว่างและจองได้ทันที</p>
        </div>
       </div>
       <div class="flex items-center justify-between md:justify-end gap-3">
-       <div class="flex gap-1 bg-slate-100 p-1 rounded-lg"><button id="lang-th" class="lang-btn active text-xs md:text-sm">ไทย</button> <button id="lang-en" class="lang-btn inactive text-xs md:text-sm">English</button>
-       </div><button id="admin-btn" class="px-3 py-2 md:px-4 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-all flex items-center gap-2 border border-blue-200 whitespace-nowrap">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span id="admin-text">Admin</span> </button>
+       <div class="flex gap-1 bg-slate-100 p-1 rounded-lg" role="group" aria-label="Language">
+        <button type="button" id="lang-th" class="lang-btn active text-xs md:text-sm" aria-pressed="true">ไทย</button>
+        <button type="button" id="lang-en" class="lang-btn inactive text-xs md:text-sm" aria-pressed="false">English</button>
+       </div>
+       <button type="button" id="admin-btn" class="px-3 py-2 md:px-4 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-all flex items-center gap-2 border border-blue-200 whitespace-nowrap">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <span>Admin</span>
+       </button>
       </div>
      </div>
     </div>
    </header>
 
-   <main class="flex-1 w-full max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6 pb-24">
-    <div class="bg-white rounded-2xl p-4 md:p-5 mb-6 border border-blue-100 shadow-sm">
-     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+   <main class="flex-1 w-full max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6 pb-28">
+
+    <!-- ===== Date navigation ===== -->
+    <section class="bg-white rounded-2xl p-4 md:p-5 mb-4 border border-blue-100 shadow-sm">
+     <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
       <div class="flex items-center justify-between w-full sm:w-auto gap-3">
-        <button id="prev-date" class="p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all text-slate-600 border border-blue-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-        </button>
-        <div class="text-center min-w-[140px]">
-            <p id="current-date" class="text-xl md:text-2xl font-semibold text-slate-800"></p>
-            <p id="current-day" class="text-sm text-blue-600 font-medium"></p>
-        </div>
-        <button id="next-date" class="p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all text-slate-600 border border-blue-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-        </button>
+       <button type="button" id="prev-date" class="p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all text-slate-600 border border-blue-200" data-i18n-aria="prevDay" aria-label="วันก่อนหน้า">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+       </button>
+       <div class="relative text-center min-w-[190px] rounded-lg hover:bg-blue-50/60 transition-colors px-2 py-1 cursor-pointer">
+        <p id="current-date" class="text-xl md:text-2xl font-semibold text-slate-800"></p>
+        <p class="text-sm text-blue-600 font-medium flex items-center justify-center gap-1.5">
+         <span id="current-day"></span>
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        </p>
+        <!-- ช่องเลือกวันที่แบบโปร่งใส วางทับข้อความวันที่ แตะแล้วเปิดปฏิทิน -->
+        <input type="date" id="jump-date" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" data-i18n-aria="pickDate" aria-label="เลือกวันที่">
+       </div>
+       <button type="button" id="next-date" class="p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all text-slate-600 border border-blue-200" data-i18n-aria="nextDay" aria-label="วันถัดไป">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+       </button>
       </div>
-      <button id="today-btn" class="w-full sm:w-auto px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all shadow-md" data-th="วันนี้" data-en="Today"> วันนี้ </button>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+       <button type="button" id="today-btn" class="flex-1 sm:flex-none px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all shadow-md" data-i18n="today">วันนี้</button>
+       <button type="button" id="refresh-btn" class="p-2 bg-white hover:bg-blue-50 rounded-lg transition-all text-slate-500 border border-blue-200" data-i18n-aria="refresh" aria-label="รีเฟรช">
+        <svg id="refresh-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+       </button>
+      </div>
      </div>
+     <p id="status-line" class="mt-3 text-xs text-slate-400 text-center sm:text-right" aria-live="polite"></p>
+    </section>
+
+    <div id="error-banner" class="hidden mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3 text-sm flex items-start gap-3" role="alert">
+     <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+     <span id="error-banner-text" class="flex-1"></span>
+     <button type="button" data-action="retry" class="px-3 py-1 rounded-lg bg-white border border-amber-300 hover:bg-amber-100 font-medium whitespace-nowrap" data-i18n="retry">ลองใหม่</button>
     </div>
-    
-    <div class="bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-sm mb-8">
+
+    <!-- ===== Schedule table ===== -->
+    <section id="schedule-section" class="bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-sm mb-3 scroll-mt-28">
      <div class="overflow-x-auto overscroll-x-contain custom-scrollbar">
-      <table class="w-full text-sm">
-       <thead>
-        <tr class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-         <th class="px-4 py-4 text-left text-slate-700 font-semibold min-w-[100px] sticky left-0 bg-blue-50 z-10 border-r border-blue-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]" data-th="เวลา" data-en="Time">เวลา</th>
-         <th class="px-4 py-4 text-center text-slate-700 font-semibold min-w-[280px] md:min-w-[350px]">
-          <div class="flex items-center justify-center gap-2 flex-col md:flex-row"><span class="text-xl">💎</span> <span id="room1-header" data-th="ห้องประชุมประกายเพชร (Prakaiphet Meeting Room)" data-en="ห้องประชุมประกายเพชร (Prakaiphet Meeting Room)">ห้องประชุมประกายเพชร (Prakaiphet Meeting Room)</span></div></th>
-         <th class="px-4 py-4 text-center text-slate-700 font-semibold min-w-[280px] md:min-w-[350px]">
-          <div class="flex items-center justify-center gap-2 flex-col md:flex-row"><span class="text-xl">🏛️</span> <span id="room2-header" data-th="หอประชุมวิเชียรคีรี (Vichian Keeree Auditorium)" data-en="หอประชุมวิเชียรคีรี (Vichian Keeree Auditorium)">หอประชุมวิเชียรคีรี (Vichian Keeree Auditorium)</span></div></th>
-        </tr>
-       </thead>
-       <tbody id="schedule-table-body" class="divide-y divide-blue-100"></tbody>
+      <table class="w-full text-sm border-collapse">
+       <thead id="schedule-head"></thead>
+       <tbody id="schedule-body"></tbody>
       </table>
      </div>
+    </section>
+
+    <div class="flex items-center justify-center gap-x-6 gap-y-2 text-xs md:text-sm flex-wrap mb-8 text-slate-600">
+     <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-100 border border-green-300 rounded"></div><span data-i18n="legendAvailable">ว่าง (แตะเพื่อจอง)</span></div>
+     <div class="flex items-center gap-2"><div class="w-4 h-4 bg-red-100 border border-red-300 rounded"></div><span data-i18n="booked">จองแล้ว</span></div>
+     <div class="flex items-center gap-2"><div class="w-4 h-4 bg-slate-100 border border-slate-200 rounded"></div><span data-i18n="past">ผ่านไปแล้ว</span></div>
     </div>
 
-    <div class="mb-8">
-        <div class="flex items-center gap-2 mb-4">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            <h2 class="text-lg font-semibold text-slate-800" data-th="รายการจองเร็วๆ นี้" data-en="Upcoming Bookings">รายการจองเร็วๆ นี้</h2>
-        </div>
-        
-        <div id="booking-summary-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            </div>
-    </div>
-    
-    <div class="flex items-center justify-center gap-8 text-sm flex-wrap bg-white/50 p-3 rounded-xl border border-blue-50">
-     <div class="flex items-center gap-2"><div class="w-5 h-5 bg-green-100 border border-green-300 rounded"></div><span class="text-slate-600" data-th="ว่าง" data-en="Available">ว่าง</span></div>
-     <div class="flex items-center gap-2"><div class="w-5 h-5 bg-red-100 border border-red-300 rounded"></div><span class="text-slate-600" data-th="จองแล้ว" data-en="Booked">จองแล้ว</span></div>
-    </div>
+    <!-- ===== Upcoming bookings ===== -->
+    <section aria-labelledby="upcoming-heading">
+     <div class="flex items-end justify-between gap-2 mb-3">
+      <div class="flex items-center gap-2">
+       <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+       <h2 id="upcoming-heading" class="text-lg font-semibold text-slate-800" data-i18n="upcoming">รายการจองเร็วๆ นี้</h2>
+      </div>
+      <span id="upcoming-hint" class="text-xs text-slate-500"></span>
+     </div>
+     <div id="upcoming-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </section>
+   </main>
 
-    <div class="mt-16 pt-8 border-t border-blue-200/60 flex flex-col items-center justify-center text-center pb-8">
-        <div class="bg-gradient-to-br from-blue-100 to-indigo-100 p-3 rounded-2xl mb-3 shadow-inner">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-        </div>
-        <p class="text-slate-500 text-xs md:text-sm font-medium mb-1" data-th="พัฒนาระบบโดย" data-en="Developed by">พัฒนาระบบโดย</p>
-        <h3 class="font-bold text-sm md:text-base tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            ศูนย์สื่อและเทคโนโลยีทางการศึกษา
-        </h3>
-        <p class="text-slate-500 text-xs md:text-sm mt-1 font-medium">โรงเรียนวิเชียรชม</p>
-    </div>
-    </main>
-
-   <button id="book-room-fab" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center z-30 hover:bg-blue-700 transition-transform active:scale-95">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+   <!-- ===== Book buttons ===== -->
+   <button type="button" id="book-room-fab" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center z-30 hover:bg-blue-700 transition-transform active:scale-95" data-i18n-aria="bookRoom" aria-label="จองห้องประชุม">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
    </button>
-
    <div class="hidden md:flex justify-center fixed bottom-8 left-0 right-0 z-30 pointer-events-none">
-     <button id="book-room-btn" class="pointer-events-auto px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 transform hover:-translate-y-1" data-th="จองห้องประชุม" data-en="Book a Meeting Room">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg><span>จองห้องประชุม</span> 
-     </button>
+    <button type="button" id="book-room-btn" class="pointer-events-auto px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 transform hover:-translate-y-1">
+     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+     <span data-i18n="bookRoom">จองห้องประชุม</span>
+    </button>
    </div>
 
-   <div id="booking-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-    <div class="modal-overlay absolute inset-0 bg-black/30 backdrop-blur-sm fixed"></div>
-    <div class="relative min-h-screen md:min-h-full flex items-end md:items-center justify-center p-0 md:p-4">
-     <div class="modal-content bg-white rounded-t-2xl md:rounded-2xl w-full max-w-md border border-blue-100 shadow-2xl">
-      <div class="p-5 border-b border-blue-100 sticky top-0 bg-white rounded-t-2xl z-10">
-       <div class="flex items-center justify-between">
-        <h3 id="booking-title" class="text-xl font-semibold text-slate-800" data-th="จองห้องประชุม" data-en="Book Meeting Room">จองห้องประชุม</h3><button id="close-booking" class="p-2 hover:bg-blue-50 rounded-lg transition-all text-slate-400">
-         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-       </div>
+   <!-- ===== Booking modal ===== -->
+   <div id="booking-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+    <div class="modal-overlay fixed inset-0 bg-black/30 backdrop-blur-sm" data-close="booking-modal"></div>
+    <div class="relative min-h-full flex items-end md:items-center justify-center p-0 md:p-4 pointer-events-none">
+     <div class="modal-content pointer-events-auto bg-white rounded-t-2xl md:rounded-2xl w-full max-w-md border border-blue-100 shadow-2xl">
+      <div class="p-5 border-b border-blue-100 bg-white rounded-t-2xl flex items-center justify-between">
+       <h3 id="booking-title" class="text-xl font-semibold text-slate-800" data-i18n="bookRoom">จองห้องประชุม</h3>
+       <button type="button" class="p-2 hover:bg-blue-50 rounded-lg transition-all text-slate-400" data-close="booking-modal" data-i18n-aria="close" aria-label="ปิด">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+       </button>
       </div>
-      <form id="booking-form" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-       <div><label class="block text-sm font-medium text-slate-700 mb-2" data-th="เลือกห้อง *" data-en="Select Room *">เลือกห้อง *</label> 
-       <select id="booking-room" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all appearance-none"> 
-           <option value="">-- เลือกห้อง --</option> 
-           <option value="ห้องประชุมประกายเพชร">💎 ห้องประชุมประกายเพชร (Prakaiphet Meeting Room)</option> 
-           <option value="หอประชุมวิเชียรคีรี">🏛️ หอประชุมวิเชียรคีรี (Vichian Keeree Auditorium)</option> 
-       </select>
+      <form id="booking-form" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto" novalidate>
+       <div>
+        <label for="booking-room" class="block text-sm font-medium text-slate-700 mb-2"><span data-i18n="selectRoom">เลือกห้อง</span> *</label>
+        <select id="booking-room" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"></select>
        </div>
        <div>
-           <label class="block text-sm font-medium text-slate-700 mb-2" data-th="วันที่ *" data-en="Date *">วันที่ *</label> 
-           <input type="date" id="booking-date-input" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+        <label for="booking-date" class="block text-sm font-medium text-slate-700 mb-2"><span data-i18n="date">วันที่</span> *</label>
+        <input type="date" id="booking-date" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
        </div>
-       <div><label class="block text-sm font-medium text-slate-700 mb-2" data-th="หัวข้อประชุม *" data-en="Meeting Topic *">หัวข้อประชุม *</label> <input type="text" id="booking-topic" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" data-placeholder-th="ระบุหัวข้อการประชุม" data-placeholder-en="Enter meeting topic" placeholder="ระบุหัวข้อการประชุม">
+       <div>
+        <label for="booking-topic" class="block text-sm font-medium text-slate-700 mb-2"><span data-i18n="topic">หัวข้อประชุม</span> *</label>
+        <input type="text" id="booking-topic" required maxlength="200" autocomplete="off" class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" data-i18n-ph="topicPh" placeholder="ระบุหัวข้อการประชุม">
        </div>
-       <div><label class="block text-sm font-medium text-slate-700 mb-2" data-th="ชื่อผู้จอง *" data-en="Organizer Name *">ชื่อผู้จอง *</label> <input type="text" id="booking-name" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" data-placeholder-th="ระบุชื่อ-นามสกุล" data-placeholder-en="Enter your name" placeholder="ระบุชื่อ-นามสกุล">
+       <div>
+        <label for="booking-name" class="block text-sm font-medium text-slate-700 mb-2"><span data-i18n="name">ชื่อผู้จอง</span> *</label>
+        <input type="text" id="booking-name" required maxlength="100" autocomplete="name" class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" data-i18n-ph="namePh" placeholder="ระบุชื่อ-นามสกุล">
        </div>
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label class="block text-sm font-medium text-slate-700 mb-2" data-th="เวลาเริ่ม *" data-en="Start Time *">เวลาเริ่ม *</label> 
-            <div class="relative">
-                <select id="booking-start" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all appearance-none"> </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
-            </div>
+       <div class="grid grid-cols-2 gap-3">
+        <div>
+         <label for="booking-start" class="block text-sm font-medium text-slate-700 mb-2"><span data-i18n="start">เวลาเริ่ม</span> *</label>
+         <select id="booking-start" required class="w-full px-3 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"></select>
         </div>
-        <div><label class="block text-sm font-medium text-slate-700 mb-2" data-th="เวลาสิ้นสุด *" data-en="End Time *">เวลาสิ้นสุด *</label> 
-            <div class="relative">
-                <select id="booking-end" required class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all appearance-none"> </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></div>
-            </div>
+        <div>
+         <label for="booking-end" class="block text-sm font-medium text-slate-700 mb-2"><span data-i18n="end">เวลาสิ้นสุด</span> *</label>
+         <select id="booking-end" required class="w-full px-3 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"></select>
         </div>
        </div>
-       <div id="booking-error" class="hidden text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200 flex items-start gap-2">
-           <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-           <span class="break-words"></span>
+       <p id="slot-hint" class="hidden text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3"></p>
+       <div id="booking-error" class="hidden text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200 flex items-start gap-2" role="alert">
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span id="booking-error-text" class="break-words"></span>
        </div>
-       <div class="pt-2">
-        <button type="submit" id="submit-booking" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg" data-th="ยืนยันการจอง" data-en="Confirm Booking"> <span>ยืนยันการจอง</span> </button>
+       <div class="pt-1">
+        <button type="submit" id="submit-booking" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg">
+         <svg id="submit-spinner" class="hidden animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+         <span id="submit-label" data-i18n="confirm">ยืนยันการจอง</span>
+        </button>
        </div>
       </form>
      </div>
     </div>
    </div>
-   
-   <div id="admin-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-    <div class="modal-overlay absolute inset-0 bg-black/30 backdrop-blur-sm fixed"></div>
-    <div class="relative min-h-screen md:min-h-full flex items-center justify-center p-4">
-     <div class="modal-content bg-white rounded-2xl w-full max-w-2xl border border-blue-100 shadow-xl max-h-[90vh] flex flex-col">
-      <div class="p-5 border-b border-blue-100 flex-shrink-0">
-       <div class="flex items-center justify-between">
-        <h3 id="admin-title" class="text-xl font-semibold text-slate-800" data-th="🔐 Admin Panel" data-en="🔐 Admin Panel">🔐 Admin Panel</h3><button id="close-admin" class="p-2 hover:bg-blue-50 rounded-lg transition-all text-slate-400">
-         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+
+   <!-- ===== Admin modal ===== -->
+   <div id="admin-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+    <div class="modal-overlay fixed inset-0 bg-black/30 backdrop-blur-sm" data-close="admin-modal"></div>
+    <div class="relative min-h-full flex items-center justify-center p-4 pointer-events-none">
+     <div class="modal-content pointer-events-auto bg-white rounded-2xl w-full max-w-2xl border border-blue-100 shadow-xl max-h-[90vh] flex flex-col">
+      <div class="p-5 border-b border-blue-100 flex-shrink-0 flex items-center justify-between gap-3">
+       <h3 id="admin-title" class="text-xl font-semibold text-slate-800">🔐 <span data-i18n="adminPanel">Admin Panel</span></h3>
+       <div class="flex items-center gap-2">
+        <button type="button" id="admin-logout" class="hidden px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50" data-i18n="logout">ออกจากระบบ</button>
+        <button type="button" class="p-2 hover:bg-blue-50 rounded-lg transition-all text-slate-400" data-close="admin-modal" data-i18n-aria="close" aria-label="ปิด">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
        </div>
-      </div><div id="admin-login" class="p-6">
-       <div class="space-y-4">
-        <div><label class="block text-sm font-medium text-slate-700 mb-2" data-th="รหัสผ่าน Admin" data-en="Admin Password">รหัสผ่าน Admin</label> <input type="password" id="admin-password-input" class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all" data-placeholder-th="ใส่รหัสผ่าน" data-placeholder-en="Enter password" placeholder="ใส่รหัสผ่าน">
+      </div>
+      <form id="admin-login" class="p-6 space-y-4">
+       <div>
+        <label for="admin-password" class="block text-sm font-medium text-slate-700 mb-2" data-i18n="adminPassword">รหัสผ่าน Admin</label>
+        <input type="password" id="admin-password" autocomplete="current-password" class="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" data-i18n-ph="passwordPh" placeholder="ใส่รหัสผ่าน">
+       </div>
+       <div id="admin-login-error" class="hidden text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200" role="alert"></div>
+       <button type="submit" class="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-all shadow-md" data-i18n="login">เข้าสู่ระบบ</button>
+      </form>
+      <div id="admin-content" class="hidden flex-1 min-h-0 flex flex-col">
+       <div class="p-4 border-b border-blue-100 flex-shrink-0 bg-slate-50 space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+         <select id="admin-filter-room" class="px-3 py-2 bg-white border border-blue-200 rounded-lg text-slate-700 text-sm focus:outline-none focus:border-blue-500 shadow-sm" data-i18n-aria="selectRoom" aria-label="เลือกห้อง"></select>
+         <select id="admin-filter-period" class="px-3 py-2 bg-white border border-blue-200 rounded-lg text-slate-700 text-sm focus:outline-none focus:border-blue-500 shadow-sm" aria-label="Period">
+          <option value="upcoming" data-i18n="periodUpcoming">ที่ยังไม่ถึง</option>
+          <option value="past" data-i18n="periodPast">ที่ผ่านไปแล้ว</option>
+          <option value="all" data-i18n="periodAll">ทั้งหมด</option>
+         </select>
         </div>
-        <div id="admin-login-error" class="hidden text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200"></div><button id="admin-login-btn" class="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-all shadow-md" data-th="เข้าสู่ระบบ" data-en="Login"> เข้าสู่ระบบ </button>
-       </div>
-      </div><div id="admin-content" class="hidden flex-1 overflow-hidden flex flex-col">
-       <div class="p-4 border-b border-blue-100 flex-shrink-0 bg-slate-50">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-         <p class="text-slate-600 font-medium" data-th="จัดการการจองทั้งหมด" data-en="Manage All Bookings">จัดการการจองทั้งหมด</p>
-         <div class="flex gap-2 w-full sm:w-auto">
-             <select id="admin-filter-room" class="w-full sm:w-auto px-3 py-2 bg-white border border-blue-200 rounded-lg text-slate-700 text-sm focus:outline-none shadow-sm"> 
-                 <option value="all" data-th="ทุกห้อง" data-en="All Rooms">ทุกห้อง</option> 
-                 <option value="ห้องประชุมประกายเพชร">ประกายเพชร (Prakaiphet)</option> 
-                 <option value="หอประชุมวิเชียรคีรี">วิเชียรคีรี (Vichian Keeree)</option> 
-             </select>
-         </div>
+        <div class="flex items-center gap-3">
+         <input type="search" id="admin-search" class="flex-1 min-w-0 px-3 py-2 bg-white border border-blue-200 rounded-lg text-slate-700 text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm" data-i18n-ph="searchPh" placeholder="ค้นหาหัวข้อหรือชื่อผู้จอง">
+         <span id="admin-count" class="text-sm text-slate-500 whitespace-nowrap"></span>
         </div>
        </div>
        <div id="admin-bookings" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar"></div>
@@ -239,343 +239,761 @@
      </div>
     </div>
    </div>
-   
-   <div id="toast" class="hidden fixed bottom-24 md:bottom-6 right-6 z-50 px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 max-w-[90vw] md:max-w-sm"><span id="toast-icon"></span> <span id="toast-message" class="font-medium text-sm md:text-base"></span></div>
-   <div id="delete-confirm" class="hidden fixed inset-0 z-[60] px-4"><div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div><div class="relative h-full flex items-center justify-center p-0"><div class="bg-white rounded-2xl p-6 w-full max-w-sm border border-blue-100 shadow-xl text-center"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div><h4 id="delete-title" class="text-xl font-semibold text-slate-800 mb-2" data-th="ยืนยันการลบ?" data-en="Confirm Delete?">ยืนยันการลบ?</h4><p id="delete-confirm-text" class="text-slate-600 text-sm mb-6"></p><div class="flex gap-3"><button id="cancel-delete" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all" data-th="ยกเลิก" data-en="Cancel"> ยกเลิก </button> <button id="confirm-delete" class="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all" data-th="ลบ" data-en="Delete"> ลบ </button></div></div></div></div>
+
+   <!-- ===== Delete confirm ===== -->
+   <div id="delete-confirm" class="hidden fixed inset-0 z-[60] px-4" role="alertdialog" aria-modal="true" aria-labelledby="delete-title">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" data-close="delete-confirm"></div>
+    <div class="relative h-full flex items-center justify-center pointer-events-none">
+     <div class="pointer-events-auto bg-white rounded-2xl p-6 w-full max-w-sm border border-blue-100 shadow-xl text-center">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+       <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      </div>
+      <h4 id="delete-title" class="text-xl font-semibold text-slate-800 mb-2" data-i18n="deleteTitle">ยืนยันการลบ?</h4>
+      <p id="delete-text" class="text-slate-600 text-sm mb-6 break-words"></p>
+      <div class="flex gap-3">
+       <button type="button" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all" data-close="delete-confirm" data-i18n="cancel">ยกเลิก</button>
+       <button type="button" id="confirm-delete" class="flex-1 py-3 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-medium rounded-xl transition-all" data-i18n="del">ลบ</button>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <div id="toast" class="hidden fixed bottom-24 md:bottom-6 right-4 md:right-6 left-4 md:left-auto z-[70] px-5 py-4 rounded-xl shadow-lg items-center gap-3 md:max-w-sm text-white" role="status" aria-live="polite">
+    <span id="toast-icon" class="text-lg leading-none"></span>
+    <span id="toast-message" class="font-medium text-sm md:text-base"></span>
+   </div>
   </div>
 
   <script>
-    const defaultConfig = { main_title: 'Meeting Room Booking System', admin_password: 'admin1234' };
-    let config = { ...defaultConfig };
-    let bookings = [];
-    let currentDate = new Date();
-    let isAdminLoggedIn = false;
-    let bookingToDelete = null;
-    let currentLanguage = 'th';
+  // =====================================================================
+  //  ตั้งค่าระบบ (แก้ได้ตรงนี้)
+  // =====================================================================
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzv-9XcwFn_pW5NwZxq_rhXOqD8ZfC573m4oSdnKXbbk5mo15DgXnlLSfpZFSZuFT8jg/exec";
 
-    const rooms = [
-      { id: 'room1', name: 'ห้องประชุมประกายเพชร', nameEn: 'Diamond Conference Room', emoji: '💎' },
-      { id: 'room2', name: 'หอประชุมวิเชียรคีรี', nameEn: 'Vichai Keeree Auditorium', emoji: '🏛️' }
-    ];
+  const OPEN_HOUR = 8;          // เปิดให้จองตั้งแต่ 08:00
+  const CLOSE_HOUR = 18;        // ถึง 18:00
+  const SLOT_MINUTES = 60;      // ความยาวช่วงละกี่นาที (เปลี่ยนเป็น 30 ได้)
+  const UPCOMING_DAYS = 7;      // "รายการจองเร็วๆ นี้" แสดงกี่วันข้างหน้า
+  const UPCOMING_MAX = 9;       // แสดงสูงสุดกี่รายการ
+  const AUTO_REFRESH_SECONDS = 90; // โหลดข้อมูลใหม่อัตโนมัติทุกกี่วินาที
 
-    // 🔥 1. ปรับเวลาให้เพิ่มทีละครึ่งชั่วโมง ตั้งแต่ 07:00 ถึง 20:00
-    const timeSlots = [];
-    for (let h = 7; h <= 20; h++) {
-      timeSlots.push(`${h.toString().padStart(2, '0')}:00`);
-      if (h < 20) { // ไม่เอา 20:30
-        timeSlots.push(`${h.toString().padStart(2, '0')}:30`);
+  // รหัสผ่าน Admin เก็บเป็นค่า SHA-256 (ไม่ใช่ตัวรหัสจริง) ตอนนี้ยังเป็นรหัสเดิม
+  // วิธีเปลี่ยนรหัส: เปิดหน้าเว็บ > กด F12 > แท็บ Console > พิมพ์  await sha256('รหัสใหม่')
+  // แล้วนำค่าที่ได้มาใส่แทนด้านล่าง
+  const ADMIN_PASSWORD_SHA256 = "ac9689e2272427085e35b9d3e3e8bed88cb3434828b43b86fc0596cad4c6e270";
+
+  // value ต้องตรงกับชื่อห้องที่บันทึกในชีต (ห้ามแก้ value ถ้ามีข้อมูลเดิมอยู่แล้ว)
+  const ROOMS = [
+    { value: 'ห้องประชุมประกายเพชร', emoji: '💎', th: 'ห้องประชุมประกายเพชร', en: 'Prakaiphet Meeting Room', shortTh: 'ประกายเพชร', shortEn: 'Prakaiphet' },
+    { value: 'หอประชุมวิเชียรคีรี', emoji: '🏛️', th: 'หอประชุมวิเชียรคีรี', en: 'Vichian Keeree Auditorium', shortTh: 'วิเชียรคีรี', shortEn: 'Vichian Keeree' }
+  ];
+  // =====================================================================
+
+  const I18N = {
+    th: {
+      title: 'ระบบจองห้องประชุมโรงเรียนวิเชียรชม', subtitle: 'ดูตารางห้องว่างและจองได้ทันที',
+      today: 'วันนี้', tomorrow: 'พรุ่งนี้', refresh: 'รีเฟรช', prevDay: 'วันก่อนหน้า', nextDay: 'วันถัดไป', pickDate: 'เลือกวันที่',
+      time: 'เวลา', now: 'ตอนนี้', available: 'ว่าง', book: 'จอง', tapToBook: 'จอง', booked: 'จองแล้ว', past: 'ผ่านไปแล้ว',
+      legendAvailable: 'ว่าง (แตะเพื่อจอง)', overlap: '⚠ เวลาซ้อนกัน', ongoing: 'กำลังใช้งาน',
+      upcoming: 'รายการจองเร็วๆ นี้', upcomingHint: n => `${n} วันข้างหน้า`, noUpcoming: 'ไม่มีการจองในช่วงนี้', moreUpcoming: n => `และอีก ${n} รายการ — เลือกวันที่ด้านบนเพื่อดูทั้งหมด`,
+      bookRoom: 'จองห้องประชุม', selectRoom: 'เลือกห้อง', selectRoomPh: '-- เลือกห้อง --', allRooms: 'ทุกห้อง',
+      date: 'วันที่', topic: 'หัวข้อประชุม', topicPh: 'ระบุหัวข้อการประชุม', name: 'ชื่อผู้จอง', namePh: 'ระบุชื่อ-นามสกุล',
+      start: 'เวลาเริ่ม', end: 'เวลาสิ้นสุด', confirm: 'ยืนยันการจอง', checking: 'กำลังตรวจสอบ...', saving: 'กำลังจอง...',
+      timeUnit: ' น.', bookedSuffix: ' (จองแล้ว)', pastSuffix: ' (ผ่านไปแล้ว)', pickRoomFirst: 'เลือกห้องก่อน แล้วระบบจะแสดงเวลาที่ว่าง',
+      roomFull: 'ห้องนี้ไม่มีช่วงเวลาว่างแล้วในวันที่เลือก ลองเลือกวันอื่นหรือห้องอื่น',
+      fillAll: 'กรุณากรอกข้อมูลให้ครบทุกช่อง', pastDate: 'ไม่สามารถจองวันหรือเวลาที่ผ่านไปแล้ว',
+      conflict: 'ช่วงเวลานี้เพิ่งมีคนจองไปแล้ว กรุณาเลือกเวลาอื่น',
+      bookSuccess: 'จองห้องประชุมสำเร็จ!',
+      notConfirmed: 'ระบบยังไม่ยืนยันการจองนี้ กรุณาตรวจสอบในตารางก่อนลองใหม่ เพื่อไม่ให้จองซ้ำ',
+      connectionError: 'เชื่อมต่อระบบไม่ได้ ยังไม่ได้บันทึกการจอง กรุณาลองใหม่อีกครั้ง',
+      connectionErrorShort: 'เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่',
+      loading: 'กำลังโหลดข้อมูล...', loadFailedEmpty: 'โหลดข้อมูลการจองไม่สำเร็จ จึงยังไม่แสดงตาราง เพื่อไม่ให้เข้าใจผิดว่าห้องว่าง',
+      retry: 'ลองใหม่', updatedAt: t => `อัปเดตล่าสุด ${t} น. · อัปเดตอัตโนมัติ`,
+      staleData: t => `เชื่อมต่อระบบไม่ได้ ข้อมูลที่เห็นอาจไม่เป็นปัจจุบัน (อัปเดตล่าสุด ${t} น.)`,
+      adminPanel: 'Admin Panel', adminPassword: 'รหัสผ่าน Admin', passwordPh: 'ใส่รหัสผ่าน', login: 'เข้าสู่ระบบ', logout: 'ออกจากระบบ',
+      wrongPassword: 'รหัสผ่านไม่ถูกต้อง', cryptoUnsupported: 'เบราว์เซอร์นี้ตรวจรหัสผ่านไม่ได้ กรุณาเปิดเว็บผ่าน https',
+      periodUpcoming: 'ที่ยังไม่ถึง', periodPast: 'ที่ผ่านไปแล้ว', periodAll: 'ทั้งหมด', searchPh: 'ค้นหาหัวข้อหรือชื่อผู้จอง',
+      count: n => `${n} รายการ`, noBookings: 'ไม่มีการจอง', noId: 'รายการนี้ไม่มีรหัสอ้างอิง ลบจากหน้าเว็บไม่ได้',
+      deleteTitle: 'ยืนยันการลบ?', deleteText: (topic, name, when) => `ลบการจอง "${topic}" ของ ${name} (${when})?`,
+      cancel: 'ยกเลิก', del: 'ลบ', deleting: 'กำลังลบ...', deleteSuccess: 'ลบการจองสำเร็จ', alreadyDeleted: 'รายการนี้ถูกลบไปแล้ว',
+      deleteNotConfirmed: 'ระบบยังไม่ยืนยันการลบ กรุณากดรีเฟรชแล้วตรวจสอบอีกครั้ง', close: 'ปิด',
+      dayNames: ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'],
+      dayShort: ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'],
+      monthShort: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'],
+      dur: m => [Math.floor(m / 60) ? `${Math.floor(m / 60)} ชม.` : '', m % 60 ? `${m % 60} นาที` : ''].filter(Boolean).join(' ')
+    },
+    en: {
+      title: 'Wichianchom School Room Booking', subtitle: 'Check availability and book instantly',
+      today: 'Today', tomorrow: 'Tomorrow', refresh: 'Refresh', prevDay: 'Previous day', nextDay: 'Next day', pickDate: 'Pick a date',
+      time: 'Time', now: 'Now', available: 'Free', book: 'Book', tapToBook: 'Book', booked: 'Booked', past: 'Past',
+      legendAvailable: 'Free (tap to book)', overlap: '⚠ Overlapping', ongoing: 'In use',
+      upcoming: 'Upcoming Bookings', upcomingHint: n => `Next ${n} days`, noUpcoming: 'No bookings in this period', moreUpcoming: n => `and ${n} more — pick a date above to see all`,
+      bookRoom: 'Book a Meeting Room', selectRoom: 'Room', selectRoomPh: '-- Select a room --', allRooms: 'All rooms',
+      date: 'Date', topic: 'Meeting topic', topicPh: 'Enter meeting topic', name: 'Organizer', namePh: 'Enter your full name',
+      start: 'Start', end: 'End', confirm: 'Confirm Booking', checking: 'Checking...', saving: 'Booking...',
+      timeUnit: '', bookedSuffix: ' (booked)', pastSuffix: ' (past)', pickRoomFirst: 'Choose a room to see its free times',
+      roomFull: 'This room has no free time left on the selected date. Try another date or room.',
+      fillAll: 'Please fill in every field.', pastDate: 'You cannot book a date or time that has already passed.',
+      conflict: 'Someone just booked this time. Please choose another time.',
+      bookSuccess: 'Meeting room booked successfully!',
+      notConfirmed: 'The system did not confirm this booking. Please check the schedule before trying again to avoid a duplicate.',
+      connectionError: 'Cannot connect to the system. Your booking was not saved. Please try again.',
+      connectionErrorShort: 'Cannot connect to the system. Please try again.',
+      loading: 'Loading...', loadFailedEmpty: 'Could not load bookings, so the schedule is hidden to avoid showing rooms as free by mistake.',
+      retry: 'Retry', updatedAt: t => `Last updated ${t} · auto-refreshing`,
+      staleData: t => `Cannot connect. The data shown may be out of date (last updated ${t}).`,
+      adminPanel: 'Admin Panel', adminPassword: 'Admin password', passwordPh: 'Enter password', login: 'Log in', logout: 'Log out',
+      wrongPassword: 'Incorrect password', cryptoUnsupported: 'This browser cannot check the password. Please open the site over https.',
+      periodUpcoming: 'Upcoming', periodPast: 'Past', periodAll: 'All', searchPh: 'Search topic or organizer',
+      count: n => `${n} booking${n === 1 ? '' : 's'}`, noBookings: 'No bookings', noId: 'This booking has no reference id and cannot be deleted here.',
+      deleteTitle: 'Confirm delete?', deleteText: (topic, name, when) => `Delete "${topic}" by ${name} (${when})?`,
+      cancel: 'Cancel', del: 'Delete', deleting: 'Deleting...', deleteSuccess: 'Booking deleted', alreadyDeleted: 'This booking was already deleted',
+      deleteNotConfirmed: 'The system did not confirm the deletion. Please refresh and check again.', close: 'Close',
+      dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      dayShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      monthShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      dur: m => [Math.floor(m / 60) ? `${Math.floor(m / 60)}h` : '', m % 60 ? `${m % 60}m` : ''].filter(Boolean).join(' ')
+    }
+  };
+
+  // ---------- utilities ----------
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2, '0');
+  const storage = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
+  };
+  function escapeHtml(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function toDateStr(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+  function parseDateStr(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+  function todayStr() { return toDateStr(new Date()); }
+  function nowMin() { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+  function fromMin(min) { return `${pad(Math.floor(min / 60))}:${pad(min % 60)}`; }
+  function addDays(date, n) { return new Date(date.getFullYear(), date.getMonth(), date.getDate() + n); }
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const OPEN_MIN = OPEN_HOUR * 60;
+  const CLOSE_MIN = CLOSE_HOUR * 60;
+  const SLOTS = [];
+  for (let m = OPEN_MIN; m < CLOSE_MIN; m += SLOT_MINUTES) SLOTS.push({ start: m, end: Math.min(m + SLOT_MINUTES, CLOSE_MIN) });
+
+  // ---------- state ----------
+  let lang = storage.get('wcc-lang') === 'en' ? 'en' : 'th';
+  const T = () => I18N[lang];
+  let bookings = [];
+  let dataStatus = 'loading';   // loading | ok | stale | error
+  let lastUpdated = null;
+  let viewDate = parseDateStr(todayStr());
+  let isAdmin = false;
+  let bookingToDelete = null;
+  let submitting = false;
+  let deleting = false;
+  let adminListCache = [];
+  const openModals = [];
+
+  // ---------- data (ส่ง/รับรูปแบบเดิมทุกอย่าง ไม่ต้องแก้ Apps Script) ----------
+  const api = {
+    async read() {
+      const res = await fetch(GOOGLE_SCRIPT_URL + '?action=read', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Unexpected response');
+      return data.map(normalizeBooking).filter(Boolean);
+    },
+    async create(payload) {
+      // ผลลัพธ์จริงตรวจจากการโหลดข้อมูลใหม่หลังส่ง จึงไม่ต้องพึ่งคำตอบของ POST
+      try { await fetch(GOOGLE_SCRIPT_URL + '?action=create', { method: 'POST', body: JSON.stringify(payload) }); }
+      catch (e) { console.warn('create request:', e); }
+    },
+    async remove(backendId) {
+      try { await fetch(GOOGLE_SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(backendId), { method: 'POST' }); }
+      catch (e) { console.warn('delete request:', e); }
+    }
+  };
+
+  function normalizeTime(v) {
+    if (v === null || v === undefined || v === '') return '';
+    const s = String(v).trim();
+    const m = s.match(/^(\d{1,2})[:.](\d{2})(?::\d{2})?$/);
+    if (m) return `${pad(+m[1])}:${m[2]}`;
+    if (s.includes('T')) { const d = new Date(s); if (!isNaN(d)) return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+    return '';
+  }
+  function normalizeDate(v) {
+    if (!v) return '';
+    const s = String(v).trim();
+    const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return `${m[1]}-${pad(+m[2])}-${pad(+m[3])}`;
+    const d = new Date(s);
+    return isNaN(d) ? '' : toDateStr(d);
+  }
+  function normalizeBooking(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const date = normalizeDate(raw.date);
+    const start_time = normalizeTime(raw.start_time);
+    const end_time = normalizeTime(raw.end_time);
+    if (!date || !start_time || !end_time) return null;
+    const startMin = toMin(start_time), endMin = toMin(end_time);
+    if (endMin <= startMin) return null;
+    return { ...raw, room: String(raw.room ?? '').trim(), topic: String(raw.topic ?? ''), booker_name: String(raw.booker_name ?? ''), date, start_time, end_time, startMin, endMin };
+  }
+  const signature = b => JSON.stringify([b.room, b.date, b.start_time, b.end_time, b.topic, b.booker_name, b.created_at ?? '']);
+
+  let loadingPromise = null;
+  async function loadData({ force = false } = {}) {
+    if (loadingPromise) {
+      if (!force) return loadingPromise;
+      await loadingPromise;
+    }
+    setRefreshing(true);
+    loadingPromise = (async () => {
+      try {
+        bookings = await api.read();
+        dataStatus = 'ok';
+        lastUpdated = new Date();
+        return true;
+      } catch (e) {
+        console.error('โหลดข้อมูลไม่สำเร็จ:', e);
+        dataStatus = lastUpdated ? 'stale' : 'error';
+        return false;
       }
-    }
+    })();
+    const ok = await loadingPromise;
+    loadingPromise = null;
+    setRefreshing(false);
+    renderAll();
+    return ok;
+  }
 
-    const translations = {
-      th: { available: 'ว่าง', booked: 'จองแล้ว', conflict: 'ช่วงเวลานี้มีการจองแล้ว กรุณาเลือกเวลาอื่น', limitReached: 'ระบบรองรับการจองได้สูงสุด 999 รายการ', bookSuccess: 'จองห้องประชุมสำเร็จ!', deleteSuccess: 'ลบการจองสำเร็จ', error: 'เกิดข้อผิดพลาด กรุณาลองใหม่', connectionError: 'ไม่สามารถเชื่อมต่อระบบได้', noBookings: 'ไม่มีการจอง', wrongPassword: 'รหัสผ่านไม่ถูกต้อง' },
-      en: { available: 'Available', booked: 'Booked', conflict: 'This time slot is already booked. Please select another time.', limitReached: 'System supports maximum 999 bookings.', bookSuccess: 'Meeting room booked successfully!', deleteSuccess: 'Booking deleted successfully', error: 'An error occurred. Please try again.', connectionError: 'Unable to connect to system.', noBookings: 'No bookings', wrongPassword: 'Incorrect password' }
-    };
+  // ---------- helpers ----------
+  function roomInfo(value) {
+    return ROOMS.find(r => r.value === value) || { value, emoji: '🏢', th: value, en: value, shortTh: value, shortEn: value };
+  }
+  const roomLabel = r => lang === 'th' ? r.th : r.en;
+  const roomAlt = r => lang === 'th' ? r.en : r.th;
+  const roomShort = r => lang === 'th' ? r.shortTh : r.shortEn;
+  const timeLabel = min => fromMin(min) + T().timeUnit;
+  function formatShortDate(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return lang === 'th' ? `${d} ${T().monthShort[m - 1]} ${y + 543}` : `${T().monthShort[m - 1]} ${d}, ${y}`;
+  }
+  function relativeDay(dateStr) {
+    const diff = Math.round((parseDateStr(dateStr) - parseDateStr(todayStr())) / 86400000);
+    if (diff === 0) return T().today;
+    if (diff === 1) return T().tomorrow;
+    return `${T().dayShort[parseDateStr(dateStr).getDay()]} ${formatShortDate(dateStr)}`;
+  }
+  const isPastBooking = b => b.date < todayStr() || (b.date === todayStr() && b.endMin <= nowMin());
+  const overlaps = (b, s, e) => b.startMin < e && b.endMin > s;
+  function hasConflict(room, date, s, e) {
+    return bookings.some(b => b.room === room && b.date === date && overlaps(b, s, e));
+  }
 
-    const dataHandler = {
-      onDataChanged(data) {
-        bookings = data;
-        renderScheduleTable();
-        renderSummary(); 
-        if (isAdminLoggedIn) { renderAdminBookings(); }
-      }
-    };
+  // ---------- rendering ----------
+  function renderAll() {
+    renderStatus();
+    renderTable();
+    renderUpcoming();
+    if (isAdmin) renderAdminList();
+    if (openModals.includes('booking-modal') && !submitting) refreshTimeOptions({ preserve: true });
+  }
 
-    async function init() {
-      const result = await window.dataSdk.init(dataHandler);
-      if (!result.isOk) { showToast(translations[currentLanguage].connectionError, 'error'); }
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange: async (newConfig) => { config = { ...defaultConfig, ...newConfig }; applyConfig(); },
-        mapToCapabilities: (cfg) => ({ recolorables: [], borderables: [] }),
-        mapToEditPanelValues: (cfg) => new Map([ ['main_title', cfg.main_title || defaultConfig.main_title], ['admin_password', cfg.admin_password || defaultConfig.admin_password] ])
-      });
-      setupEventListeners();
-      updateDateDisplay();
-      populateTimeSelects();
-      renderScheduleTable();
-    }
+  function setRefreshing(on) { $('refresh-icon').classList.toggle('animate-spin', on); }
 
-    function applyConfig() { document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title; }
+  function renderStatus() {
+    const L = T();
+    const time = lastUpdated ? fromMin(lastUpdated.getHours() * 60 + lastUpdated.getMinutes()) : '';
+    $('status-line').textContent = dataStatus === 'loading' && !lastUpdated ? L.loading : lastUpdated ? L.updatedAt(time) : '';
+    const banner = $('error-banner');
+    if (dataStatus === 'stale') {
+      $('error-banner-text').textContent = L.staleData(time);
+      banner.classList.remove('hidden');
+    } else banner.classList.add('hidden');
+  }
 
-    function setupEventListeners() {
-      document.getElementById('prev-date').addEventListener('click', () => changeDate(-1));
-      document.getElementById('next-date').addEventListener('click', () => changeDate(1));
-      document.getElementById('today-btn').addEventListener('click', goToToday);
-      document.getElementById('book-room-btn').addEventListener('click', openBookingModal);
-      document.getElementById('book-room-fab').addEventListener('click', openBookingModal);
-      document.getElementById('admin-btn').addEventListener('click', openAdminModal);
-      document.getElementById('close-admin').addEventListener('click', closeAdminModal);
-      document.getElementById('booking-form').addEventListener('submit', handleBooking);
-      document.getElementById('admin-login-btn').addEventListener('click', handleAdminLogin);
-      document.getElementById('admin-filter-room').addEventListener('change', renderAdminBookings);
-      document.getElementById('cancel-delete').addEventListener('click', closeDeleteConfirm);
-      document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
-      document.getElementById('booking-start').addEventListener('change', updateEndTimeOptions);
-      document.getElementById('booking-modal').querySelector('.modal-overlay').addEventListener('click', closeBookingModal);
-      document.getElementById('admin-modal').querySelector('.modal-overlay').addEventListener('click', closeAdminModal);
-      document.getElementById('lang-th').addEventListener('click', () => setLanguage('th'));
-      document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
-    }
-
-    function setLanguage(lang) {
-      currentLanguage = lang;
-      document.getElementById('lang-th').className = lang === 'th' ? 'lang-btn active text-xs md:text-sm' : 'lang-btn inactive text-xs md:text-sm';
-      document.getElementById('lang-en').className = lang === 'en' ? 'lang-btn active text-xs md:text-sm' : 'lang-btn inactive text-xs md:text-sm';
-      document.querySelectorAll('[data-th]').forEach(el => { if (el.dataset.en) { el.textContent = lang === 'th' ? el.dataset.th : el.dataset.en; } });
-      document.querySelectorAll('[data-placeholder-th]').forEach(el => { if (el.dataset.placeholderEn) { el.placeholder = lang === 'th' ? el.dataset.placeholderTh : el.dataset.placeholderEn; } });
-      const roomSelect = document.getElementById('booking-room');
-      roomSelect.options[1].textContent = '💎 ห้องประชุมประกายเพชร (Prakaiphet Meeting Room)';
-      roomSelect.options[2].textContent = '🏛️ หอประชุมวิเชียรคีรี (Vichian Keeree Auditorium)';
-      const filterSelect = document.getElementById('admin-filter-room');
-      filterSelect.options[0].textContent = lang === 'th' ? 'ทุกห้อง' : 'All Rooms';
-      filterSelect.options[1].textContent = 'ประกายเพชร (Prakaiphet)';
-      filterSelect.options[2].textContent = 'วิเชียรคีรี (Vichian Keeree)';
-      renderScheduleTable();
-      renderSummary(); 
-      if (isAdminLoggedIn) { renderAdminBookings(); }
-    }
-
-    function changeDate(days) { currentDate.setDate(currentDate.getDate() + days); updateDateDisplay(); renderScheduleTable(); }
-    function goToToday() { currentDate = new Date(); updateDateDisplay(); renderScheduleTable(); }
-    function updateDateDisplay() {
-      let options, thaiDate;
-      if (currentLanguage === 'th') { options = { year: 'numeric', month: 'long', day: 'numeric' }; thaiDate = currentDate.toLocaleDateString('th-TH', options); } 
-      else { options = { year: 'numeric', month: 'long', day: 'numeric' }; thaiDate = currentDate.toLocaleDateString('en-US', options); }
-      document.getElementById('current-date').textContent = thaiDate;
-      let dayNames;
-      if (currentLanguage === 'th') { dayNames = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์']; document.getElementById('current-day').textContent = `วัน${dayNames[currentDate.getDay()]}`; } 
-      else { dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; document.getElementById('current-day').textContent = dayNames[currentDate.getDay()]; }
-    }
-    function getDateString(date) { return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`; }
-
-    function renderSummary() {
-        const container = document.getElementById('booking-summary-list');
-        const today = new Date().setHours(0,0,0,0);
-        let activeBookings = bookings.filter(b => {
-            const bDate = new Date(b.date);
-            return bDate >= today;
-        });
-        activeBookings.sort((a, b) => {
-            const dateA = new Date(a.date + 'T' + a.start_time);
-            const dateB = new Date(b.date + 'T' + b.start_time);
-            return dateA - dateB;
-        });
-        if (activeBookings.length === 0) {
-            container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">ไม่มีการจองเร็วๆ นี้</div>`;
-            return;
-        }
-        container.innerHTML = activeBookings.map(b => `
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-2">
-                <div class="flex items-center gap-2 text-slate-500 text-xs">
-                    <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-medium">${b.room.includes('ประกาย') ? '💎 ประกายเพชร' : '🏛️ วิเชียรคีรี'}</span>
-                    <span>•</span>
-                    <span>${formatThaiDate(b.date)}</span>
-                </div>
-                <h4 class="font-semibold text-slate-800 line-clamp-2">${b.topic}</h4>
-                <div class="flex items-center justify-between text-sm mt-auto pt-2 border-t border-slate-50">
-                    <span class="text-slate-600 flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${b.start_time} - ${b.end_time}</span>
-                    <span class="text-slate-500 font-medium">${b.booker_name}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function populateTimeSelects() {
-      const startSelect = document.getElementById('booking-start');
-      const endSelect = document.getElementById('booking-end');
-      startSelect.innerHTML = '';
-      endSelect.innerHTML = '';
-      for (let i = 0; i < timeSlots.length - 1; i++) {
-        const option = document.createElement('option');
-        option.value = timeSlots[i];
-        option.textContent = timeSlots[i] + ' น.';
-        startSelect.appendChild(option);
-      }
-      updateEndTimeOptions();
-    }
-
-    function updateEndTimeOptions() {
-      const startSelect = document.getElementById('booking-start');
-      const endSelect = document.getElementById('booking-end');
-      const startIndex = timeSlots.indexOf(startSelect.value);
-      endSelect.innerHTML = '';
-      for (let i = startIndex + 1; i < timeSlots.length; i++) {
-        const option = document.createElement('option');
-        option.value = timeSlots[i];
-        option.textContent = timeSlots[i] + ' น.';
-        endSelect.appendChild(option);
-      }
-    }
-
-    // 🔥 2. อัปเกรดตารางให้ฉลาดขึ้น (ซ่อนแถวครึ่งชั่วโมงได้เนียนๆ)
-    function renderScheduleTable() {
-      const dateStr = getDateString(currentDate);
-      const tbody = document.getElementById('schedule-table-body');
-      let html = '';
-      
-      // ตัวช่วยจำว่าห้องไหนโดน rowspan บังไปแล้วกี่แถว
-      let skipCells = {};
-      rooms.forEach(r => skipCells[r.name] = 0);
-
-      for (let i = 0; i < timeSlots.length - 1; i++) {
-        const startTime = timeSlots[i];
-        
-        html += '<tr class="border-b border-blue-100 hover:bg-blue-50/50 transition-colors">';
-        
-        // --- ส่วนที่ 1: คอลัมน์เวลา (สร้างแค่แถวเลขคู่ แล้วตั้ง rowspan=2 เพื่อให้ดูเป็น 1 ชั่วโมง) ---
-        if (i % 2 === 0) {
-          const hourEnd = timeSlots[i + 2] || timeSlots[timeSlots.length - 1]; 
-          html += `<td rowspan="2" class="px-4 py-4 text-slate-700 font-medium sticky left-0 bg-white border-r border-blue-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] text-xs md:text-sm whitespace-nowrap align-top">${startTime.substring(0,2)}:00 - ${hourEnd.substring(0,2)}:00</td>`;
-        }
-
-        // --- ส่วนที่ 2: คอลัมน์ห้องประชุม ---
-        rooms.forEach(room => {
-          // ถ้าระบบจำไว้ว่าแถวนี้โดนคลุมด้วย rowspan จากแถวบน ให้ข้ามการวาด td ไปเลย
-          if (skipCells[room.name] > 0) {
-            skipCells[room.name]--;
-            return; 
-          }
-
-          const roomBookings = bookings.filter(b => b.room === room.name && b.date === dateStr);
-          const booking = roomBookings.find(b => {
-            const bStart = timeSlots.indexOf(b.start_time);
-            const bEnd = timeSlots.indexOf(b.end_time);
-            return i >= bStart && i < bEnd;
-          });
-
-          if (booking) {
-            // กรณีมีคนจอง (คำนวณ rowspan ได้ละเอียดถึงครึ่งชั่วโมง)
-            const bStart = timeSlots.indexOf(booking.start_time);
-            const bEnd = timeSlots.indexOf(booking.end_time);
-            const rowSpan = bEnd - bStart;
-            skipCells[room.name] = rowSpan - 1; 
-            
-            html += `
-              <td rowspan="${rowSpan}" class="px-2 py-2 md:px-4 md:py-4 schedule-cell bg-red-50 border border-red-200 rounded-lg relative align-top">
-                <div class="space-y-1">
-                  <p class="text-red-700 font-semibold text-xs md:text-sm line-clamp-2">📌 ${booking.topic}</p>
-                  <p class="text-red-600 text-[10px] md:text-xs truncate">👤 ${booking.booker_name}</p>
-                  <p class="text-red-500 text-[10px] md:text-xs hidden md:block">${booking.start_time} - ${booking.end_time}</p>
-                  <span class="inline-block mt-1 px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded font-medium">${translations[currentLanguage].booked}</span>
-                </div>
-              </td>
-            `;
-          } else {
-            // กรณีห้องว่าง: ถ้ายืนอยู่ตรงหัวชั่วโมง และครึ่งชั่วโมงถัดไปก็ว่าง ให้รวบช่องให้ใหญ่ 1 ชั่วโมงไปเลย
-            let rowSpan = 1;
-            if (i % 2 === 0) {
-              const nextBooking = roomBookings.find(b => {
-                const bStart = timeSlots.indexOf(b.start_time);
-                const bEnd = timeSlots.indexOf(b.end_time);
-                return (i + 1) >= bStart && (i + 1) < bEnd;
-              });
-              if (!nextBooking) {
-                rowSpan = 2; // รวบเป็น 1 ชั่วโมง
-                skipCells[room.name] = 1;
-              }
-            }
-            
-            html += `
-              <td rowspan="${rowSpan}" class="px-2 py-2 md:px-4 md:py-4 schedule-cell available bg-green-50/50 border border-green-100/50 rounded-lg h-full">
-                <div class="flex items-center justify-center h-full min-h-[40px]">
-                  <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-[10px] md:text-xs rounded-full font-medium opacity-70">${translations[currentLanguage].available}</span>
-                </div>
-              </td>
-            `;
-          }
-        });
-        html += '</tr>';
-      }
-      tbody.innerHTML = html;
-    }
-
-    function openBookingModal() {
-      document.getElementById('booking-room').value = '';
-      document.getElementById('booking-date-input').value = getDateString(currentDate);
-      document.getElementById('booking-error').classList.add('hidden');
-      document.getElementById('booking-modal').classList.remove('hidden');
-      populateTimeSelects();
-    }
-
-    function closeBookingModal() { document.getElementById('booking-modal').classList.add('hidden'); document.getElementById('booking-form').reset(); }
-
-    async function handleBooking(e) {
-      e.preventDefault();
-      const room = document.getElementById('booking-room').value;
-      const dateStr = document.getElementById('booking-date-input').value;
-      const topic = document.getElementById('booking-topic').value.trim();
-      const name = document.getElementById('booking-name').value.trim();
-      const startTime = document.getElementById('booking-start').value;
-      const endTime = document.getElementById('booking-end').value;
-      
-      if (!room || !dateStr) { document.getElementById('booking-error').classList.remove('hidden'); return; }
-      
-      const roomBookings = bookings.filter(b => b.room === room && b.date === dateStr);
-      const startIdx = timeSlots.indexOf(startTime);
-      const endIdx = timeSlots.indexOf(endTime);
-      const hasConflict = roomBookings.some(b => {
-        const bStart = timeSlots.indexOf(b.start_time);
-        const bEnd = timeSlots.indexOf(b.end_time);
-        return (startIdx < bEnd && endIdx > bStart);
-      });
-      
-      if (hasConflict) { document.getElementById('booking-error').querySelector('span').textContent = translations[currentLanguage].conflict; document.getElementById('booking-error').classList.remove('hidden'); return; }
-      if (bookings.length >= 999) { document.getElementById('booking-error').querySelector('span').textContent = translations[currentLanguage].limitReached; document.getElementById('booking-error').classList.remove('hidden'); return; }
-      
-      const submitBtn = document.getElementById('submit-booking');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>' + (currentLanguage === 'th' ? 'กำลังจอง...' : 'Booking...') + '</span>';
-      
-      const result = await window.dataSdk.create({ id: Date.now().toString(), room, topic, booker_name: name, date: dateStr, start_time: startTime, end_time: endTime, created_at: new Date().toISOString() });
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span>' + (currentLanguage === 'th' ? 'ยืนยันการจอง' : 'Confirm Booking') + '</span>';
-      if (result.isOk) { closeBookingModal(); showToast(translations[currentLanguage].bookSuccess, 'success'); } 
-      else { document.getElementById('booking-error').querySelector('span').textContent = translations[currentLanguage].error; document.getElementById('booking-error').classList.remove('hidden'); }
-    }
-
-    function openAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); if (!isAdminLoggedIn) { document.getElementById('admin-login').classList.remove('hidden'); document.getElementById('admin-content').classList.add('hidden'); } }
-    function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); document.getElementById('admin-password-input').value = ''; document.getElementById('admin-login-error').classList.add('hidden'); }
-    function handleAdminLogin() {
-      const password = document.getElementById('admin-password-input').value;
-      if (password === config.admin_password || password === defaultConfig.admin_password) { isAdminLoggedIn = true; document.getElementById('admin-login').classList.add('hidden'); document.getElementById('admin-content').classList.remove('hidden'); renderAdminBookings(); } 
-      else { document.getElementById('admin-login-error').textContent = translations[currentLanguage].wrongPassword; document.getElementById('admin-login-error').classList.remove('hidden'); }
-    }
-
-    function renderAdminBookings() {
-      const container = document.getElementById('admin-bookings');
-      const filterRoom = document.getElementById('admin-filter-room').value;
-      let filtered = [...bookings];
-      if (filterRoom !== 'all') { filtered = filtered.filter(b => b.room === filterRoom); }
-      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      
-      if (filtered.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">' + translations[currentLanguage].noBookings + '</p>'; return; }
-      
-      container.innerHTML = filtered.map(booking => `
-        <div class="bg-white border border-blue-100 rounded-xl p-4 shadow-sm" data-booking-id="${booking.__backendId}">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-2"><span class="text-lg">${booking.room === 'ห้องประชุมประกายเพชร' ? '💎' : '🏛️'}</span><span class="text-slate-800 font-medium truncate text-sm md:text-base">${currentLanguage === 'th' ? booking.room : (booking.room === 'ห้องประชุมประกายเพชร' ? 'Prakaiphet Meeting Room' : 'Vichian Keeree Auditorium')}</span></div>
-              <p class="text-blue-600 font-semibold mb-1">📌 ${booking.topic}</p>
-              <div class="flex flex-col sm:flex-row sm:gap-4 text-sm text-slate-600"><span class="flex items-center gap-1">👤 ${booking.booker_name}</span><span class="flex items-center gap-1">📅 ${formatThaiDate(booking.date)}</span><span class="flex items-center gap-1">🕐 ${booking.start_time} - ${booking.end_time}</span></div>
-            </div>
-            <button onclick="showDeleteConfirm('${booking.__backendId}')" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all flex-shrink-0 border border-red-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+  function renderTableHead() {
+    const L = T();
+    $('schedule-head').innerHTML = `
+      <tr class="bg-gradient-to-r from-blue-50 to-indigo-50">
+        <th scope="col" class="sticky left-0 z-[2] bg-blue-50 px-2 md:px-4 py-3 text-left text-xs md:text-sm font-semibold text-slate-700 border-b border-r border-blue-100 w-16 md:w-28">${L.time}</th>
+        ${ROOMS.map(r => `
+        <th scope="col" class="px-2 md:px-4 py-3 text-center border-b border-blue-100 min-w-[128px] md:min-w-[280px]">
+          <div class="flex flex-col items-center gap-0.5">
+            <span class="text-lg md:text-xl" aria-hidden="true">${r.emoji}</span>
+            <span class="text-xs md:text-sm font-semibold text-slate-800 leading-snug">${escapeHtml(roomLabel(r))}</span>
+            <span class="text-[11px] md:text-xs font-normal text-slate-500 leading-snug">${escapeHtml(roomAlt(r))}</span>
           </div>
+        </th>`).join('')}
+      </tr>`;
+  }
+
+  // จัดกลุ่มการจองของห้องหนึ่งเป็นช่อง (รองรับการจองคร่อมช่วง/ซ้อนกัน โดยไม่ทำตารางพัง)
+  function planColumn(list) {
+    const plan = new Array(SLOTS.length).fill(null);
+    const items = list.map(b => {
+      let first = -1, last = -1;
+      SLOTS.forEach((s, i) => { if (overlaps(b, s.start, s.end)) { if (first < 0) first = i; last = i; } });
+      return first < 0 ? null : { b, first, last };
+    }).filter(Boolean).sort((a, z) => a.first - z.first || a.b.startMin - z.b.startMin);
+    let i = 0;
+    while (i < items.length) {
+      const first = items[i].first;
+      let last = items[i].last;
+      const group = [items[i].b];
+      let j = i + 1;
+      while (j < items.length && items[j].first <= last) { last = Math.max(last, items[j].last); group.push(items[j].b); j++; }
+      group.sort((a, z) => a.startMin - z.startMin);
+      plan[first] = { span: last - first + 1, bookings: group };
+      for (let k = first + 1; k <= last; k++) plan[k] = 'skip';
+      i = j;
+    }
+    return plan;
+  }
+  function groupHasOverlap(group) {
+    let maxEnd = -1;
+    for (const b of group) { if (b.startMin < maxEnd) return true; maxEnd = Math.max(maxEnd, b.endMin); }
+    return false;
+  }
+
+  function renderTable() {
+    const tbody = $('schedule-body');
+    const L = T();
+    const cols = ROOMS.length + 1;
+    if (!lastUpdated && dataStatus === 'loading') {
+      tbody.innerHTML = SLOTS.map(() => `<tr>${'<td class="p-1.5 border-b border-blue-50"><div class="h-11 rounded-lg bg-slate-100 animate-pulse"></div></td>'.repeat(cols)}</tr>`).join('');
+      return;
+    }
+    if (!lastUpdated && dataStatus === 'error') {
+      tbody.innerHTML = `<tr><td colspan="${cols}" class="p-8 text-center">
+        <p class="text-slate-600 mb-4">${L.loadFailedEmpty}</p>
+        <button type="button" data-action="retry" class="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">${L.retry}</button>
+      </td></tr>`;
+      return;
+    }
+    const dateStr = toDateStr(viewDate);
+    const today = todayStr();
+    const isToday = dateStr === today;
+    const isPastDay = dateStr < today;
+    const nm = nowMin();
+    const plans = ROOMS.map(r => planColumn(bookings.filter(b => b.room === r.value && b.date === dateStr)));
+
+    tbody.innerHTML = SLOTS.map((slot, i) => {
+      const isNow = isToday && nm >= slot.start && nm < slot.end;
+      const slotPast = isPastDay || (isToday && slot.end <= nm);
+      let row = `<tr>
+        <th scope="row" class="sticky left-0 z-[1] px-2 md:px-4 py-2 align-top text-left whitespace-nowrap border-b border-r border-blue-50 ${isNow ? 'bg-blue-50' : 'bg-white'}">
+          <div class="text-xs md:text-sm font-semibold ${isNow ? 'text-blue-700' : slotPast ? 'text-slate-400' : 'text-slate-700'}">${fromMin(slot.start)}</div>
+          <div class="text-[11px] md:text-xs font-normal text-slate-400">${fromMin(slot.end)}</div>
+          ${isNow ? `<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-blue-600 text-white text-[10px] font-medium">${L.now}</span>` : ''}
+        </th>`;
+      ROOMS.forEach((room, ri) => {
+        const cell = plans[ri][i];
+        if (cell === 'skip') return;
+        if (cell) {
+          const allPast = cell.bookings.every(isPastBooking);
+          row += `<td rowspan="${cell.span}" class="p-1.5 align-top border-b border-blue-50" style="height:1px">
+            <div class="cell-fill rounded-lg bg-red-50 border border-red-200 p-2 md:p-3 ${allPast ? 'opacity-60' : ''}">
+              ${groupHasOverlap(cell.bookings) ? `<p class="mb-1 text-[11px] md:text-xs font-semibold text-amber-700">${L.overlap}</p>` : ''}
+              ${cell.bookings.map(b => `
+                <div class="space-y-0.5">
+                  <p class="text-red-700 font-semibold text-xs md:text-sm line-clamp-2 break-words">${escapeHtml(b.topic)}</p>
+                  <p class="text-red-600 text-xs truncate">👤 ${escapeHtml(b.booker_name)}</p>
+                  <p class="text-red-500 text-xs">${b.start_time}–${b.end_time}</p>
+                </div>`).join('<hr class="my-1.5 border-red-200">')}
+              <span class="inline-block mt-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded font-medium">${L.booked}</span>
+            </div>
+          </td>`;
+        } else if (slotPast) {
+          row += `<td class="p-1.5 border-b border-blue-50" style="height:1px">
+            <div class="cell-fill min-h-[44px] rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-xs" title="${L.past}">—</div>
+          </td>`;
+        } else {
+          row += `<td class="p-1.5 border-b border-blue-50" style="height:1px">
+            <button type="button" data-book-room="${escapeHtml(room.value)}" data-book-start="${slot.start}"
+              class="cell-fill w-full min-h-[44px] rounded-lg bg-green-50 border border-green-100 hover:bg-green-100 hover:border-green-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors flex items-center justify-center gap-1.5 text-green-700 text-xs md:text-sm font-medium"
+              aria-label="${escapeHtml(`${L.tapToBook} ${roomLabel(room)} ${fromMin(slot.start)}–${fromMin(slot.end)}`)}">
+              <span>${L.available}</span>
+              <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+            </button>
+          </td>`;
+        }
+      });
+      return row + '</tr>';
+    }).join('');
+  }
+
+  function renderUpcoming() {
+    const L = T();
+    const el = $('upcoming-list');
+    $('upcoming-hint').textContent = L.upcomingHint(UPCOMING_DAYS);
+    if (!lastUpdated) {
+      el.innerHTML = dataStatus === 'loading' ? '<div class="h-28 rounded-xl bg-white/70 border border-slate-100 animate-pulse"></div>'.repeat(3) : '';
+      return;
+    }
+    const today = todayStr();
+    const limit = toDateStr(addDays(parseDateStr(today), UPCOMING_DAYS - 1));
+    const nm = nowMin();
+    const list = bookings
+      .filter(b => b.date >= today && b.date <= limit && !(b.date === today && b.endMin <= nm))
+      .sort((a, z) => a.date.localeCompare(z.date) || a.startMin - z.startMin);
+    if (!list.length) {
+      el.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">${L.noUpcoming}</div>`;
+      return;
+    }
+    el.innerHTML = list.slice(0, UPCOMING_MAX).map(b => {
+      const r = roomInfo(b.room);
+      const ongoing = b.date === today && b.startMin <= nm && nm < b.endMin;
+      return `
+      <button type="button" data-goto-date="${b.date}" class="text-left bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition flex flex-col gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
+        <div class="flex items-center gap-2 text-slate-500 text-xs flex-wrap">
+          <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-medium">${r.emoji} ${escapeHtml(roomShort(r))}</span>
+          <span class="font-medium ${b.date === today ? 'text-blue-600' : ''}">${relativeDay(b.date)}</span>
+          ${ongoing ? `<span class="ml-auto px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">● ${L.ongoing}</span>` : ''}
         </div>
-      `).join('');
-    }
+        <h4 class="font-semibold text-slate-800 line-clamp-2 break-words">${escapeHtml(b.topic)}</h4>
+        <div class="flex items-center justify-between gap-2 text-sm mt-auto pt-2 border-t border-slate-100">
+          <span class="text-slate-600 flex items-center gap-1 whitespace-nowrap"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${b.start_time} - ${b.end_time}</span>
+          <span class="text-slate-500 font-medium truncate">${escapeHtml(b.booker_name)}</span>
+        </div>
+      </button>`;
+    }).join('') + (list.length > UPCOMING_MAX ? `<p class="col-span-full text-center text-sm text-slate-500">${L.moreUpcoming(list.length - UPCOMING_MAX)}</p>` : '');
+  }
 
-    function formatThaiDate(dateStr) {
-      const [year, month, day] = dateStr.split('-');
-      if (currentLanguage === 'th') { const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']; return `${parseInt(day)} ${months[parseInt(month) - 1]} ${parseInt(year) + 543}`; } 
-      else { const date = new Date(year, parseInt(month) - 1, parseInt(day)); return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); }
-    }
+  function updateDateDisplay() {
+    const L = T();
+    $('current-date').textContent = viewDate.toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dateStr = toDateStr(viewDate);
+    $('current-day').textContent = L.dayNames[viewDate.getDay()] + (dateStr === todayStr() ? ` · ${L.today}` : '');
+    $('jump-date').value = dateStr;
+  }
+  function setViewDate(d) { viewDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()); updateDateDisplay(); renderTable(); }
 
-    function showDeleteConfirm(backendId) { const booking = bookings.find(b => b.__backendId === backendId); if (!booking) return; bookingToDelete = booking; document.getElementById('delete-confirm-text').textContent = `${currentLanguage === 'th' ? 'ลบการจอง' : 'Delete booking'} "${booking.topic}" ${currentLanguage === 'th' ? 'ของ' : 'by'} ${booking.booker_name}?`; document.getElementById('delete-confirm').classList.remove('hidden'); }
-    function closeDeleteConfirm() { document.getElementById('delete-confirm').classList.add('hidden'); bookingToDelete = null; }
-    async function confirmDelete() { if (!bookingToDelete) return; const confirmBtn = document.getElementById('confirm-delete'); confirmBtn.disabled = true; confirmBtn.textContent = currentLanguage === 'th' ? 'กำลังลบ...' : 'Deleting...'; const result = await window.dataSdk.delete(bookingToDelete); confirmBtn.disabled = false; confirmBtn.textContent = currentLanguage === 'th' ? 'ลบ' : 'Delete'; if (result.isOk) { closeDeleteConfirm(); showToast(translations[currentLanguage].deleteSuccess, 'success'); } else { showToast(translations[currentLanguage].error, 'error'); } }
-    function showToast(message, type) { const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); const toastIcon = document.getElementById('toast-icon'); toastMessage.textContent = message; if (type === 'success') { toast.className = 'fixed bottom-24 md:bottom-6 right-6 z-50 px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 max-w-[90vw] md:max-w-sm bg-green-500 text-white'; toastIcon.textContent = '✓'; } else { toast.className = 'fixed bottom-24 md:bottom-6 right-6 z-50 px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 max-w-[90vw] md:max-w-sm bg-red-500 text-white'; toastIcon.textContent = '✕'; } toast.classList.remove('hidden'); setTimeout(() => { toast.classList.add('hidden'); }, 3000); }
-    init();
+  // ---------- language ----------
+  function applyStaticI18n() {
+    const L = T();
+    document.documentElement.lang = lang;
+    document.title = L.title;
+    document.querySelectorAll('[data-i18n]').forEach(el => { const v = L[el.dataset.i18n]; if (typeof v === 'string') el.textContent = v; });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = L[el.dataset.i18nPh]; if (typeof v === 'string') el.placeholder = v; });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = L[el.dataset.i18nAria]; if (typeof v === 'string') el.setAttribute('aria-label', v); });
+    ['th', 'en'].forEach(code => {
+      const btn = $('lang-' + code);
+      btn.className = `lang-btn ${code === lang ? 'active' : 'inactive'} text-xs md:text-sm`;
+      btn.setAttribute('aria-pressed', String(code === lang));
+    });
+  }
+  function fillRoomSelects() {
+    const L = T();
+    const sel = $('booking-room'), filter = $('admin-filter-room');
+    const v1 = sel.value, v2 = filter.value || 'all';
+    sel.innerHTML = `<option value="">${L.selectRoomPh}</option>` + ROOMS.map(r => `<option value="${escapeHtml(r.value)}">${r.emoji} ${escapeHtml(roomLabel(r))} (${escapeHtml(roomAlt(r))})</option>`).join('');
+    filter.innerHTML = `<option value="all">${L.allRooms}</option>` + ROOMS.map(r => `<option value="${escapeHtml(r.value)}">${r.emoji} ${escapeHtml(roomShort(r))}</option>`).join('');
+    sel.value = v1; filter.value = v2;
+  }
+  function setLanguage(next) {
+    lang = next;
+    storage.set('wcc-lang', lang);
+    applyStaticI18n();
+    fillRoomSelects();
+    renderTableHead();
+    updateDateDisplay();
+    renderAll();
+  }
+
+  // ---------- modals ----------
+  function openModal(id) {
+    $(id).classList.remove('hidden');
+    if (!openModals.includes(id)) openModals.push(id);
+    document.body.classList.add('overflow-hidden');
+  }
+  function closeModal(id) {
+    $(id).classList.add('hidden');
+    const i = openModals.indexOf(id);
+    if (i >= 0) openModals.splice(i, 1);
+    if (!openModals.length) document.body.classList.remove('overflow-hidden');
+    if (id === 'delete-confirm') bookingToDelete = null;
+    if (id === 'admin-modal') { $('admin-password').value = ''; $('admin-login-error').classList.add('hidden'); }
+  }
+
+  // ---------- booking form ----------
+  function showBookingError(msg) { $('booking-error-text').textContent = msg; $('booking-error').classList.remove('hidden'); }
+  function hideBookingError() { $('booking-error').classList.add('hidden'); }
+  function setSubmitting(on, label) {
+    submitting = on;
+    $('submit-booking').disabled = on;
+    $('submit-spinner').classList.toggle('hidden', !on);
+    $('submit-label').textContent = on ? label : T().confirm;
+    if (!on) refreshSubmitState();
+  }
+  function refreshSubmitState() {
+    if (submitting) return;
+    $('submit-booking').disabled = $('booking-room').value !== '' && $('booking-start').value === '';
+  }
+
+  function openBookingModal(prefill = {}) {
+    $('booking-form').reset();
+    hideBookingError();
+    const today = todayStr();
+    const viewStr = toDateStr(viewDate);
+    $('booking-room').value = prefill.room || '';
+    $('booking-date').min = today;
+    $('booking-date').value = prefill.date || (viewStr >= today ? viewStr : today);
+    refreshTimeOptions({ preferStart: prefill.start ?? null });
+    openModal('booking-modal');
+    setTimeout(() => (prefill.room ? $('booking-topic') : $('booking-room')).focus(), 50);
+  }
+
+  function refreshTimeOptions({ preferStart = null, preserve = false } = {}) {
+    const L = T();
+    const room = $('booking-room').value;
+    const date = $('booking-date').value;
+    const startSel = $('booking-start');
+    const prevStart = preserve && startSel.value !== '' ? Number(startSel.value) : null;
+    const prevEnd = preserve && $('booking-end').value !== '' ? Number($('booking-end').value) : null;
+    const dayBookings = room && date ? bookings.filter(b => b.room === room && b.date === date) : [];
+    const today = todayStr();
+    const nm = nowMin();
+    const ok = [];
+    startSel.innerHTML = SLOTS.map(s => {
+      const booked = dayBookings.some(b => overlaps(b, s.start, s.end));
+      const past = !date || date < today || (date === today && s.end <= nm);
+      if (!booked && !past) ok.push(s.start);
+      return `<option value="${s.start}"${booked || past ? ' disabled' : ''}>${timeLabel(s.start)}${booked ? L.bookedSuffix : past ? L.pastSuffix : ''}</option>`;
+    }).join('');
+    const pick = [preferStart, prevStart].find(v => v !== null && ok.includes(Number(v)));
+    if (pick !== undefined) startSel.value = String(pick);
+    else if (ok.length) startSel.value = String(ok[0]);
+    else startSel.selectedIndex = -1;
+
+    const hint = $('slot-hint');
+    if (!room) { hint.textContent = L.pickRoomFirst; hint.classList.remove('hidden'); }
+    else if (date && date >= today && !ok.length) { hint.textContent = L.roomFull; hint.classList.remove('hidden'); }
+    else hint.classList.add('hidden');
+
+    updateEndOptions(prevEnd, dayBookings);
+    refreshSubmitState();
+  }
+
+  function updateEndOptions(preferEnd = null, dayBookings = null) {
+    const endSel = $('booking-end');
+    const startSel = $('booking-start');
+    if (startSel.selectedIndex < 0 || startSel.value === '') { endSel.innerHTML = ''; return; }
+    const room = $('booking-room').value, date = $('booking-date').value;
+    const list = dayBookings || (room && date ? bookings.filter(b => b.room === room && b.date === date) : []);
+    const start = Number(startSel.value);
+    const limit = Math.min(CLOSE_MIN, ...list.filter(b => b.startMin > start).map(b => b.startMin));
+    const ends = SLOTS.filter(s => s.start >= start && s.end <= limit).map(s => s.end);
+    endSel.innerHTML = ends.map(e => `<option value="${e}">${timeLabel(e)} · ${T().dur(e - start)}</option>`).join('');
+    endSel.value = preferEnd !== null && ends.includes(preferEnd) ? String(preferEnd) : String(ends[0] ?? '');
+  }
+
+  async function handleBooking(e) {
+    e.preventDefault();
+    if (submitting) return;
+    hideBookingError();
+    const L = T();
+    const room = $('booking-room').value;
+    const date = $('booking-date').value;
+    const topic = $('booking-topic').value.trim();
+    const name = $('booking-name').value.trim();
+    const startVal = $('booking-start').value;
+    const endVal = $('booking-end').value;
+    if (!room || !date || !topic || !name || startVal === '' || endVal === '') return showBookingError(L.fillAll);
+    const startMin = Number(startVal), endMin = Number(endVal);
+    const today = todayStr();
+    const firstSlotEnd = Math.min(startMin + SLOT_MINUTES, CLOSE_MIN);
+    if (date < today || (date === today && firstSlotEnd <= nowMin())) return showBookingError(L.pastDate);
+
+    setSubmitting(true, L.checking);
+    try {
+      // 1) โหลดข้อมูลล่าสุดก่อน แล้วตรวจว่ามีคนจองตัดหน้าหรือไม่
+      if (!(await loadData({ force: true }))) return showBookingError(T().connectionError);
+      if (hasConflict(room, date, startMin, endMin)) { refreshTimeOptions({ preserve: true }); return showBookingError(T().conflict); }
+
+      // 2) ส่งข้อมูลรูปแบบเดิมไปที่ Apps Script
+      setSubmitting(true, T().saving);
+      await api.create({ id: Date.now().toString(), room, topic, booker_name: name, date, start_time: fromMin(startMin), end_time: fromMin(endMin), created_at: new Date().toISOString() });
+
+      // 3) โหลดใหม่และยืนยันว่ามีรายการนี้อยู่จริงในชีต
+      const reloaded = await loadData({ force: true });
+      const saved = reloaded && bookings.some(b => b.room === room && b.date === date && b.startMin === startMin && b.endMin === endMin);
+      if (!saved) return showBookingError(T().notConfirmed);
+
+      setSubmitting(false);
+      closeModal('booking-modal');
+      setViewDate(parseDateStr(date));
+      showToast(T().bookSuccess, 'success');
+    } finally {
+      if (submitting) setSubmitting(false);
+    }
+  }
+
+  // ---------- admin ----------
+  function showAdminError(msg) { const el = $('admin-login-error'); el.textContent = msg; el.classList.remove('hidden'); }
+  function syncAdminView() {
+    $('admin-login').classList.toggle('hidden', isAdmin);
+    $('admin-content').classList.toggle('hidden', !isAdmin);
+    $('admin-logout').classList.toggle('hidden', !isAdmin);
+  }
+  function openAdminModal() {
+    syncAdminView();
+    openModal('admin-modal');
+    if (isAdmin) renderAdminList(); else setTimeout(() => $('admin-password').focus(), 50);
+  }
+  async function handleAdminLogin(e) {
+    e.preventDefault();
+    if (!(window.crypto && crypto.subtle)) return showAdminError(T().cryptoUnsupported);
+    const hash = await sha256($('admin-password').value);
+    if (hash !== ADMIN_PASSWORD_SHA256) { $('admin-password').select(); return showAdminError(T().wrongPassword); }
+    isAdmin = true;
+    $('admin-password').value = '';
+    $('admin-login-error').classList.add('hidden');
+    syncAdminView();
+    renderAdminList();
+  }
+  function logoutAdmin() { isAdmin = false; syncAdminView(); $('admin-bookings').innerHTML = ''; }
+
+  function renderAdminList() {
+    const L = T();
+    const room = $('admin-filter-room').value || 'all';
+    const period = $('admin-filter-period').value;
+    const q = $('admin-search').value.trim().toLowerCase();
+    let list = bookings.filter(b =>
+      (room === 'all' || b.room === room) &&
+      (period === 'all' || (period === 'past' ? isPastBooking(b) : !isPastBooking(b))) &&
+      (!q || b.topic.toLowerCase().includes(q) || b.booker_name.toLowerCase().includes(q)));
+    const asc = (a, z) => a.date.localeCompare(z.date) || a.startMin - z.startMin;
+    list.sort(period === 'upcoming' ? asc : (a, z) => asc(z, a));
+    adminListCache = list;
+    $('admin-count').textContent = L.count(list.length);
+    const container = $('admin-bookings');
+    if (!list.length) { container.innerHTML = `<p class="text-center text-slate-500 py-8">${L.noBookings}</p>`; return; }
+    container.innerHTML = list.map((b, idx) => {
+      const r = roomInfo(b.room);
+      const hasId = b.__backendId !== undefined && b.__backendId !== null && b.__backendId !== '';
+      return `
+      <div class="bg-white border border-blue-100 rounded-xl p-4 shadow-sm ${isPastBooking(b) ? 'opacity-70' : ''}">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1.5 text-sm text-slate-500"><span aria-hidden="true">${r.emoji}</span><span class="truncate">${escapeHtml(roomLabel(r))}</span></div>
+            <p class="text-blue-700 font-semibold mb-1 break-words">${escapeHtml(b.topic)}</p>
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-4 gap-y-0.5 text-sm text-slate-600">
+              <span>👤 ${escapeHtml(b.booker_name)}</span>
+              <span>📅 ${L.dayShort[parseDateStr(b.date).getDay()]} ${formatShortDate(b.date)}</span>
+              <span>🕐 ${b.start_time} - ${b.end_time}</span>
+            </div>
+          </div>
+          <button type="button" ${hasId ? `data-delete-index="${idx}"` : 'disabled'} title="${hasId ? L.del : L.noId}" aria-label="${L.del}"
+            class="p-2 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed text-red-600 rounded-lg transition-all flex-shrink-0 border border-red-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showDeleteConfirm(index) {
+    const b = adminListCache[index];
+    if (!b) return;
+    bookingToDelete = b;
+    $('delete-text').textContent = T().deleteText(b.topic, b.booker_name, `${formatShortDate(b.date)} ${b.start_time}-${b.end_time}`);
+    openModal('delete-confirm');
+  }
+  async function confirmDelete() {
+    if (!bookingToDelete || deleting) return;
+    const sig = signature(bookingToDelete);
+    const btn = $('confirm-delete');
+    deleting = true; btn.disabled = true; btn.textContent = T().deleting;
+    try {
+      // โหลดข้อมูลล่าสุดก่อน เพื่อใช้รหัสอ้างอิงปัจจุบันของรายการนี้ (กันลบผิดแถว)
+      if (!(await loadData({ force: true }))) return showToast(T().connectionErrorShort, 'error');
+      const before = bookings.filter(b => signature(b) === sig);
+      if (!before.length) { closeModal('delete-confirm'); return showToast(T().alreadyDeleted, 'success'); }
+      await api.remove(String(before[0].__backendId));
+      const ok = await loadData({ force: true });
+      const after = bookings.filter(b => signature(b) === sig).length;
+      if (ok && after < before.length) { closeModal('delete-confirm'); showToast(T().deleteSuccess, 'success'); }
+      else showToast(ok ? T().deleteNotConfirmed : T().connectionErrorShort, 'error');
+    } finally {
+      deleting = false; btn.disabled = false; btn.textContent = T().del;
+    }
+  }
+
+  // ---------- toast ----------
+  let toastTimer = null;
+  function showToast(message, type) {
+    const toast = $('toast');
+    $('toast-message').textContent = message;
+    $('toast-icon').textContent = type === 'success' ? '✓' : '✕';
+    toast.classList.remove('hidden', 'bg-green-600', 'bg-red-600');
+    toast.classList.add('flex', type === 'success' ? 'bg-green-600' : 'bg-red-600');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('flex'); }, type === 'success' ? 3500 : 6000);
+  }
+
+  // ---------- events ----------
+  function setupEventListeners() {
+    $('prev-date').addEventListener('click', () => setViewDate(addDays(viewDate, -1)));
+    $('next-date').addEventListener('click', () => setViewDate(addDays(viewDate, 1)));
+    $('today-btn').addEventListener('click', () => setViewDate(new Date()));
+    $('refresh-btn').addEventListener('click', () => loadData({ force: true }));
+    $('jump-date').addEventListener('click', e => { try { e.target.showPicker(); } catch (err) { /* เบราว์เซอร์เก่าเปิดปฏิทินเอง */ } });
+    $('jump-date').addEventListener('change', e => { if (e.target.value) setViewDate(parseDateStr(e.target.value)); });
+    $('book-room-btn').addEventListener('click', () => openBookingModal());
+    $('book-room-fab').addEventListener('click', () => openBookingModal());
+    $('admin-btn').addEventListener('click', openAdminModal);
+    $('admin-logout').addEventListener('click', logoutAdmin);
+    $('admin-login').addEventListener('submit', handleAdminLogin);
+    $('admin-filter-room').addEventListener('change', renderAdminList);
+    $('admin-filter-period').addEventListener('change', renderAdminList);
+    $('admin-search').addEventListener('input', renderAdminList);
+    $('booking-form').addEventListener('submit', handleBooking);
+    $('booking-room').addEventListener('change', () => { hideBookingError(); refreshTimeOptions({ preserve: true }); });
+    $('booking-date').addEventListener('change', () => { hideBookingError(); refreshTimeOptions({ preserve: true }); });
+    $('booking-start').addEventListener('change', () => { hideBookingError(); updateEndOptions(); });
+    $('confirm-delete').addEventListener('click', confirmDelete);
+    $('lang-th').addEventListener('click', () => setLanguage('th'));
+    $('lang-en').addEventListener('click', () => setLanguage('en'));
+
+    document.addEventListener('click', e => {
+      const t = e.target.closest('[data-close],[data-book-room],[data-goto-date],[data-delete-index],[data-action="retry"]');
+      if (!t) return;
+      if (t.dataset.close) return closeModal(t.dataset.close);
+      if (t.dataset.action === 'retry') return loadData({ force: true });
+      if (t.dataset.bookRoom) return openBookingModal({ room: t.dataset.bookRoom, date: toDateStr(viewDate), start: Number(t.dataset.bookStart) });
+      if (t.dataset.gotoDate) { setViewDate(parseDateStr(t.dataset.gotoDate)); return $('schedule-section').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      if (t.dataset.deleteIndex !== undefined) return showDeleteConfirm(Number(t.dataset.deleteIndex));
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && openModals.length) closeModal(openModals[openModals.length - 1]);
+    });
+
+    // อัปเดตข้อมูลอัตโนมัติ และเมื่อกลับมาที่แท็บนี้
+    setInterval(() => { if (document.visibilityState === 'visible' && !submitting && !deleting) loadData(); }, AUTO_REFRESH_SECONDS * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && !submitting && !deleting && (!lastUpdated || Date.now() - lastUpdated > 30000)) loadData();
+    });
+    // อัปเดตแถบ "ตอนนี้" และช่องที่ผ่านไปแล้วทุกนาที
+    setInterval(() => { if (lastUpdated) { renderTable(); renderUpcoming(); } }, 60000);
+  }
+
+  // ---------- start ----------
+  function init() {
+    applyStaticI18n();
+    fillRoomSelects();
+    renderTableHead();
+    updateDateDisplay();
+    setupEventListeners();   // ผูกปุ่มก่อน ไม่ต้องรอข้อมูล
+    renderAll();             // แสดงโครงตารางระหว่างโหลด
+    loadData();
+  }
+  init();
   </script>
  </body>
 </html>
