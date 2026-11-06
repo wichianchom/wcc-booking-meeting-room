@@ -130,6 +130,15 @@
      </div>
      <div id="upcoming-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
     </section>
+
+    <footer class="mt-16 pt-8 border-t border-blue-200/60 flex flex-col items-center justify-center text-center pb-4">
+     <div class="bg-gradient-to-br from-blue-100 to-indigo-100 p-3 rounded-2xl mb-3 shadow-inner" aria-hidden="true">
+      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+     </div>
+     <p class="text-slate-500 text-xs md:text-sm font-medium mb-1" data-i18n="developedBy">พัฒนาระบบโดย</p>
+     <p class="font-bold text-sm md:text-base tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">ศูนย์สื่อและเทคโนโลยีทางการศึกษา</p>
+     <p class="text-slate-500 text-xs md:text-sm mt-1 font-medium">โรงเรียนวิเชียรชม</p>
+    </footer>
    </main>
 
    <!-- ===== Book buttons ===== -->
@@ -268,11 +277,12 @@
   // =====================================================================
   //  ตั้งค่าระบบ (แก้ได้ตรงนี้)
   // =====================================================================
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzv-9XcwFn_pW5NwZxq_rhXOqD8ZfC573m4oSdnKXbbk5mo15DgXnlLSfpZFSZuFT8jg/exec";
+  // ลิงก์ Apps Script ตัวที่แจ้งเตือนเข้ากลุ่ม LINE (ตัวเดียวกับเว็บเดิม)
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX2hTvwN2rzcLafiQfuWZTHZ5aRFJ8K3B4fPHn3NQkm67El3msX0qZdQC7a649tXiGQQ/exec";
 
-  const OPEN_HOUR = 8;          // เปิดให้จองตั้งแต่ 08:00
-  const CLOSE_HOUR = 18;        // ถึง 18:00
-  const SLOT_MINUTES = 60;      // ความยาวช่วงละกี่นาที (เปลี่ยนเป็น 30 ได้)
+  const OPEN_HOUR = 7;          // เปิดให้จองตั้งแต่ 07:00
+  const CLOSE_HOUR = 20;        // ถึง 20:00
+  const SLOT_MINUTES = 30;      // ความยาวช่วงละกี่นาที (30 = ครึ่งชั่วโมง, 60 = ชั่วโมง)
   const UPCOMING_DAYS = 7;      // "รายการจองเร็วๆ นี้" แสดงกี่วันข้างหน้า
   const UPCOMING_MAX = 9;       // แสดงสูงสุดกี่รายการ
   const AUTO_REFRESH_SECONDS = 90; // โหลดข้อมูลใหม่อัตโนมัติทุกกี่วินาที
@@ -291,7 +301,7 @@
 
   const I18N = {
     th: {
-      title: 'ระบบจองห้องประชุมโรงเรียนวิเชียรชม', subtitle: 'ดูตารางห้องว่างและจองได้ทันที',
+      title: 'ระบบจองห้องประชุมโรงเรียนวิเชียรชม', subtitle: 'ดูตารางห้องว่างและจองได้ทันที', developedBy: 'พัฒนาระบบโดย',
       today: 'วันนี้', tomorrow: 'พรุ่งนี้', refresh: 'รีเฟรช', prevDay: 'วันก่อนหน้า', nextDay: 'วันถัดไป', pickDate: 'เลือกวันที่',
       time: 'เวลา', now: 'ตอนนี้', available: 'ว่าง', book: 'จอง', tapToBook: 'จอง', booked: 'จองแล้ว', past: 'ผ่านไปแล้ว',
       legendAvailable: 'ว่าง (แตะเพื่อจอง)', overlap: '⚠ เวลาซ้อนกัน', ongoing: 'กำลังใช้งาน',
@@ -323,7 +333,7 @@
       dur: m => [Math.floor(m / 60) ? `${Math.floor(m / 60)} ชม.` : '', m % 60 ? `${m % 60} นาที` : ''].filter(Boolean).join(' ')
     },
     en: {
-      title: 'Wichianchom School Room Booking', subtitle: 'Check availability and book instantly',
+      title: 'Wichianchom School Room Booking', subtitle: 'Check availability and book instantly', developedBy: 'Developed by',
       today: 'Today', tomorrow: 'Tomorrow', refresh: 'Refresh', prevDay: 'Previous day', nextDay: 'Next day', pickDate: 'Pick a date',
       time: 'Time', now: 'Now', available: 'Free', book: 'Book', tapToBook: 'Book', booked: 'Booked', past: 'Past',
       legendAvailable: 'Free (tap to book)', overlap: '⚠ Overlapping', ongoing: 'In use',
